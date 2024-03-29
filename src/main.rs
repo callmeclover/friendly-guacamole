@@ -121,7 +121,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let _ = state.tx.send(serde_json::to_string(&UserJoin {user: username.clone()}).expect(""));
     
     let msg_vec = *MESSAGES.lock().unwrap().clone();
-    let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec}).expect("couldn't serialize MESSAGES vector!"))).await;
+    let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec.to_vec(f)}).expect("couldn't serialize MESSAGES vector!"))).await;
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
