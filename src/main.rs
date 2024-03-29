@@ -151,7 +151,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
                     push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
-                    if let Some(text) = into_censored_md(&clean(&*msg_new), &user) {
+                    if let Some(text) = into_censored_md(&clean(&*msg_new), &mut user) {
                         request.msg = text;
                         let mut msg_vec = MESSAGES.lock().unwrap();
                         msg_vec.push_with_hard_limit(&request);

@@ -1,4 +1,3 @@
-use rustrict::CensorIter;
 use kuchikiki::traits::*;
 use std::cell::RefCell;
 
@@ -17,7 +16,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &User) -> Option<String> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Option<String> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
