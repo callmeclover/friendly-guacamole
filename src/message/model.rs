@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum MessageTypes {
   MessageSent(MessageSent),
-  RetrieveMessages(RetrieveMessages)
+  RetrieveMessages(RetrieveMessages),
+  UserJoin(UserJoin),
+  UserLeave(UserLeave)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -16,4 +17,14 @@ pub struct MessageSent {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {
     pub msgs: Vec<MessageTypes>
+}
+
+// User related messages
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UserLeave {
+    user: String
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UserJoin {
+    msgs: String
 }

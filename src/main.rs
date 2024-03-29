@@ -1,5 +1,5 @@
 mod message;
-use message::model::{MessageTypes, MessageSent};
+use message::model::*;
 use message::func::{into_censored_md, VecWithHardLimit};
 
 use axum::{
@@ -118,7 +118,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // Now send the "joined" message to all subscribers.
     let msg = format!("{username} joined.");
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
-    let _ = state.tx.send(msg);
+    let _ = state.tx.send(serde_json::to_string(UserJoin {user: username}).expect(""));
 
     let _ = sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&*MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!")))).await;
 
@@ -168,7 +168,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // Send "user left" message (similar to "joined" above).
     let msg = format!("{username} left.");
     tracing::debug!("{msg}");
-    let _ = state.tx.send(msg);
+    let _ = state.tx.send(serde_json::to_string(UserLeft {user: username}).expect(""));
 
     // Remove username from map so new clients can take it again.
     state.user_set.lock().unwrap().remove(&username);
