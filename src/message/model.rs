@@ -8,12 +8,12 @@ pub enum MessageTypes {
   RetrieveMessages(RetrieveMessages)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct MessageSent {
     pub msg: String,
     user: String
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct RetrieveMessages {
     pub msgs: Vec<MessageTypes>
 }
