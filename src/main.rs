@@ -1,5 +1,5 @@
 mod message;
-use message::model::{MessageTypes};
+use message::model::MessageTypes;
 use message::func::{into_censored_md, VecWithHardLimit};
 
 use axum::{
@@ -111,7 +111,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let username = USER_ID.lock().unwrap().clone().to_string();
 
-    sender.send(Message.Text(format!("\"param1\": {}", serde_json::to_string(&MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
+    sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.

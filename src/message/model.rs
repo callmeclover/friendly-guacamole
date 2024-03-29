@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
-enum MessageTypes {
+pub enum MessageTypes {
   MessageSent(MessageSent),
   RetrieveMessages(RetrieveMessages)
 }
@@ -15,5 +15,5 @@ struct MessageSent {
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct RetrieveMessages {
-    msgs: VecString
+    msgs: Vec<MessageTypes::MessageSent>
 }
