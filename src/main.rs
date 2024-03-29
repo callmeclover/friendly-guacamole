@@ -163,7 +163,6 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                             continue;
                         }
                     }
-                    }}
                 },
                 _ => { continue; }
             }
