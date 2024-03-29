@@ -1,9 +1,6 @@
+use rustrict::CensorIter;
 use kuchikiki::traits::*;
 use std::cell::RefCell;
-use rustrict::BlockReason;
-use std::error::Error;
-
-use crate::user::model::*;
 
 pub trait VecWithHardLimit<T: Clone> {
     fn push_with_hard_limit(&mut self, element: &T);
@@ -18,7 +15,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReason> {
+pub fn into_censored_md(html: &str) -> Option<String> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -26,24 +23,24 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
         document = kuchikiki::parse_html().one(format!("<p>{}</p>", document.select_first("body").unwrap().as_node().to_string()));
     }
 
-    let mut nodes_text: Vec<String> = document.select_first("p").expect("").as_node().descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    nodes_text.pop();
-    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("").trim().to_string())?.chars().collect();
+    let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
+    let mut nodes_char: Vec<char> = nodes_text.join("").chars().censor().collect::<Vec<char>>();
 
+    let mut index = 0;
     let mut new_text: Vec<String> = vec![];
-    for text in nodes_text.iter() {
-        println!("{}, {:?}, {:?}", text, nodes_char, nodes_text);
-        let replacement: String = nodes_char.chunks_exact(text.len()).next().unwrap().iter().collect();
+    while index < nodes_text.len() {
+        let replacement: String = nodes_char.chunks_exact(nodes_text[index].len()).next().unwrap().iter().collect();
         new_text.push(replacement);
-        nodes_char.drain(0..text.len());
+        nodes_char.drain(0..nodes_text[index].len());
+        index += 1;
     }
 
-    for (index, text_node) in document.select_first("p").expect("").as_node().descendants().text_nodes().enumerate() {
+    for (index, text_node) in document.descendants().text_nodes().enumerate() {
         text_node.replace(new_text[index].clone());
     }
-    if document.select_first("p").expect("").as_node().descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        Err(BlockReason::Empty)
+    if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
+        None
     } else {
-        Ok(document.select_first("p").unwrap().as_node().to_string())
+        Some(document.select_first("p").unwrap().as_node().to_string())
     }
 }
