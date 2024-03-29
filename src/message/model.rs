@@ -25,6 +25,6 @@ pub struct UserJoin {
     user: String
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UserLeave {
+pub struct UserLeft {
     user: String
 }
