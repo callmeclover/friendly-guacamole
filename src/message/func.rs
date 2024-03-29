@@ -41,7 +41,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
     for (index, text_node) in document.select_first("p").expect("").as_node().descendants().text_nodes().enumerate() {
         text_node.replace(new_text[index].clone());
     }
-    if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
+    if document.select_first("p").descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
         Err(BlockReason::Empty)
     } else {
         Ok(document.select_first("p").unwrap().as_node().to_string())
