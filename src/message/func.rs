@@ -31,7 +31,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
     let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("").trim().to_string())?.chars().collect();
 
     let mut new_text: Vec<String> = vec![];
-    for text < nodes_text.iter() {
+    for text in nodes_text.iter() {
         let replacement: String = nodes_char.chunks_exact(text.len()).next().unwrap().iter().collect();
         new_text.push(replacement);
         nodes_char.drain(0..text.len());
