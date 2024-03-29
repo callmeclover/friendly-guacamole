@@ -26,17 +26,9 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
         document = kuchikiki::parse_html().one(format!("<p>{}</p>", document.select_first("body").unwrap().as_node().to_string()));
     }
 
-    let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    let mut nodes_char: Vec<char>;
-
-    match user.context.process(nodes_text.join("").trim().to_string()) {
-        Ok(text) => {
-            nodes_char = text.chars().collect::<Vec<char>>();
-        },
-        Err(blockreason) => {
-            return Err(blockreason);
-        }
-    }
+    let mut nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
+    nodes_text.pop();
+    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("").trim().to_string()).chars().collect();
 
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
