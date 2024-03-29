@@ -119,9 +119,11 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let msg = format!("{username} joined.");
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
     let _ = state.tx.send(serde_json::to_string(&UserJoin {user: username.clone()}).expect(""));
-
-    let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: MESSAGES.lock().unwrap().clone().to_vec()}).expect("couldn't serialize MESSAGES vector!"))).await;
-
+    
+    let msg_vec = *MESSAGES.lock().unwrap();
+    let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec}).expect("couldn't serialize MESSAGES vector!"))).await;
+    drop(msg_vec);
+    
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
     let mut send_task = tokio::spawn(async move {
