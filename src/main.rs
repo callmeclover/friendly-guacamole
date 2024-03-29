@@ -120,7 +120,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
     let _ = state.tx.send(serde_json::to_string(&UserJoin {user: username.clone()}).expect(""));
     
-    let msg_vec = *MESSAGES.lock().unwrap();
+    let msg_vec = MESSAGES.lock().unwrap();
     let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec.clone()}).expect("couldn't serialize MESSAGES vector!"))).await;
     drop(msg_vec);
 
