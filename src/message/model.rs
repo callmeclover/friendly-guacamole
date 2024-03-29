@@ -16,7 +16,7 @@ pub struct MessageSent {
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {
-    pub msgs: Vec<MessageTypes>
+    pub msgs: Vec<MessageSent>
 }
 
 // User related messages
