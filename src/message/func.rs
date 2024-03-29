@@ -31,7 +31,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
 
     match user.context.process(nodes_text.join("")) {
         Ok(text) => {
-            nodes_char = text.chars().collect::<Vec<char>>()[0];
+            nodes_char = text.chars().collect::<Vec<char>>()[2];
         },
         Err(blockreason) => {
             return Err(blockreason);
@@ -41,7 +41,6 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
     while index < nodes_text.len() {
-        println!("{:?}", nodes_char);
         let replacement: String = nodes_char.chunks_exact(nodes_text[index].len()).next().unwrap().iter().collect();
         new_text.push(replacement);
         nodes_char.drain(0..nodes_text[index].len());
