@@ -2,6 +2,8 @@ use rustrict::CensorIter;
 use kuchikiki::traits::*;
 use std::cell::RefCell;
 
+use crate::user::model::*;
+
 pub trait VecWithHardLimit<T: Clone> {
     fn push_with_hard_limit(&mut self, element: &T);
 }
@@ -15,7 +17,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str) -> Option<String> {
+pub fn into_censored_md(html: &str, user: User) -> Option<String> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -24,7 +26,7 @@ pub fn into_censored_md(html: &str) -> Option<String> {
     }
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    let mut nodes_char: Vec<char> = nodes_text.join("").chars().censor().collect::<Vec<char>>();
+    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("")).chars().collect::<Vec<char>>();
 
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];

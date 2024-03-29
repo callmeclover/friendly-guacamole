@@ -1,7 +1,10 @@
 mod message;
+mod user;
 use message::model::*;
 use message::func::{into_censored_md, VecWithHardLimit};
+use user::model::*;
 
+use rustrict::{Context, BlockReason};
 use axum::{
     extract::{State, ws::{Message, WebSocket, WebSocketUpgrade}},
     response::IntoResponse,
@@ -32,9 +35,9 @@ use axum::extract::connect_info::ConnectInfo;
 use futures::{sink::SinkExt, stream::StreamExt};
 
 use serde_json;
-
 use postgres::Client;
 use lazy_static::lazy_static;
+
 lazy_static! {
     static ref DB_CLIENT: Mutex<Client> = Mutex::new(Client::connect("postgres://user:password@localhost/database", postgres::NoTls).unwrap());
 }
@@ -111,6 +114,8 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let username = USER_ID.lock().unwrap().clone().to_string();
 
+    let mut user = User { context: Context::default()}
+
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
@@ -146,7 +151,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
                     push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
-                    if let Some(text) = into_censored_md(&clean(&*msg_new)) {
+                    if let Some(text) = into_censored_md(&clean(&*msg_new), user) {
                         request.msg = text;
                         let mut msg_vec = MESSAGES.lock().unwrap();
                         msg_vec.push_with_hard_limit(&request);

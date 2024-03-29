@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = {version="0.7.5", features=["ws"]}
-rustrict = "0.7.24"
+rustrict = {version="0.7.24", features=["context"]}
 tokio = {version = "1.36.0", features=["full"]}
 pulldown-cmark = "0.10.0"
 tokio-tungstenite = {version="0.21.0", features=["__rustls-tls"]}
