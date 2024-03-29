@@ -143,7 +143,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             let mut message = serde_json::from_str::<MessageTypes>(&text).expect("couldn't get json from message");
             match message {
-                MessageTypes::MessageSent(request) => {
+                MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
                     push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
                     if let Some(text) = into_censored_md(&clean(&*msg_new)) {
