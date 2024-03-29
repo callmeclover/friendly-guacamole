@@ -1,5 +1,7 @@
 use kuchikiki::traits::*;
 use std::cell::RefCell;
+use rustrict::BlockReason;
+use std::error::Error;
 
 use crate::user::model::*;
 
@@ -16,7 +18,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User) -> Option<String> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn Error>> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -25,7 +27,16 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Option<String> {
     }
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("")).expect("").chars().collect::<Vec<char>>();
+    let mut nodes_char: Vec<char>;
+
+    match user.context.process(nodes_text.join("")) {
+        Ok(text) => {
+            nodes_char = text.chars().collect::<Vec<char>>();
+        },
+        Err(blockreason) => {
+            return Err(blockreason);
+        }
+    }
 
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
@@ -41,8 +52,8 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Option<String> {
         text_node.replace(new_text[index].clone());
     }
     if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        None
+        Err()
     } else {
-        Some(document.select_first("p").unwrap().as_node().to_string())
+        Ok(document.select_first("p").unwrap().as_node().to_string())
     }
 }
