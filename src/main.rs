@@ -1,5 +1,5 @@
 mod message;
-use message::model::MessageTypes;
+use message::model::{MessageTypes, MessageSent};
 use message::func::{into_censored_md, VecWithHardLimit};
 
 use axum::{
@@ -39,7 +39,7 @@ lazy_static! {
     static ref DB_CLIENT: Mutex<Client> = Mutex::new(Client::connect("postgres://user:password@localhost/database", postgres::NoTls).unwrap());
 }
 
-static MESSAGES: Lazy<Mutex<Vec<MessageTypes>>> = Lazy::new(|| Mutex::new(Vec::with_capacity(20)));
+static MESSAGES: Lazy<Mutex<Vec<MessageSent>>> = Lazy::new(|| Mutex::new(Vec::with_capacity(20)));
 static USER_ID: Lazy<Arc<Mutex<i32>>> = Lazy::new(|| Arc::new(Mutex::new(0)));
 
 // Our shared state
