@@ -111,8 +111,6 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let username = USER_ID.lock().unwrap().clone().to_string();
 
-    sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&*MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
-
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
@@ -121,6 +119,8 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let msg = format!("{username} joined.");
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
     let _ = state.tx.send(msg);
+
+    sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&*MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
