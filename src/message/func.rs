@@ -30,7 +30,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Option<String> {
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
     while index < nodes_text.len() {
-        println!("{:?}", nodes_char.chunks_exact(nodes_text[index].len()).next());
+        println!("{:?}", nodes_char.chunks_exact(nodes_text[index].len()).next().unwrap());
         let replacement: String = nodes_char.chunks_exact(nodes_text[index].len()).next().unwrap().iter().collect();
         new_text.push(replacement);
         nodes_char.drain(0..nodes_text[index].len());
