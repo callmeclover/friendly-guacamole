@@ -15,5 +15,5 @@ struct MessageSent {
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct RetrieveMessages {
-    pub msgs: Vec<MessageTypes::MessageSent>
+    pub msgs: Vec<MessageTypes>
 }
