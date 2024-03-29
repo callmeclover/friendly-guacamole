@@ -22,9 +22,9 @@ pub struct RetrieveMessages {
 // User related messages
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserJoin {
-    user: String
+    pub user: String
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserLeft {
-    user: String
+    pub user: String
 }

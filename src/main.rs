@@ -140,7 +140,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // name, and sends them to all broadcast subscribers.
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
-            let mut message = serde_json::from_str::<MessageTypes>(&text).expect("couldn't get json from message");
+            let message = serde_json::from_str::<MessageTypes>(&text).expect("couldn't get json from message");
             match message {
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
