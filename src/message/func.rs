@@ -18,7 +18,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn Error>> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReason> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -52,7 +52,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
         text_node.replace(new_text[index].clone());
     }
     if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        Err()
+        Err(BlockReason::Empty)
     } else {
         Ok(document.select_first("p").unwrap().as_node().to_string())
     }
