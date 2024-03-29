@@ -10,10 +10,10 @@ pub enum MessageTypes {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct MessageSent {
-    msg: String,
+    pub msg: String,
     user: String
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct RetrieveMessages {
-    msgs: Vec<MessageTypes::MessageSent>
+    pub msgs: Vec<MessageTypes::MessageSent>
 }
