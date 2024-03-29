@@ -31,7 +31,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
 
     match user.context.process(nodes_text.join("")) {
         Ok(text) => {
-            nodes_char = text.chars().collect::<Vec<char>>();
+            nodes_char = text.chars().collect::<Vec<char>>()[0];
         },
         Err(blockreason) => {
             return Err(blockreason);
