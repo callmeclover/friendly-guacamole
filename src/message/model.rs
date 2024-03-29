@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "snake_case")]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
 pub enum MessageType {
-    MessageSent,
+    MessageSent {},
     RetrieveMessages,
     RoomJoin,
     RoomLeave,
@@ -13,28 +13,28 @@ pub enum MessageType {
     ChangeUserData // Implement this later!
 }
 
-impl FromStr for MessageType {
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+enum MessageTypes {
+  MessageSent(MessageSent),
+  RetrieveMessages(RetrieveMessages)
+}
 
-    type Err = ();
-
-    fn from_str(input: &str) -> Result<MessageType, Self::Err> {
-        match input {
-            "message_sent"  => Ok(MessageType::MessageSent),
-            "room_join"  => Ok(MessageType::RoomJoin),
-            "room_leave"  => Ok(MessageType::RoomLeave),
-            "change_user_data" => Ok(MessageType::ChangeUserData),
-            "user_join"  => Ok(MessageType::UserJoin),
-            "user_leave"  => Ok(MessageType::UserLeave),
-            _      => Err(()),
-        }
-    }
+#[derive(Serialize, Deserialize, Debug)]
+struct MessageSent {
+    msg: String,
+    user: String
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct RetrieveMessages {
+    msgs: VecString
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MessageModel {
     // Message typing so the client and server know what they should do with results
     #[serde(rename="type")]
-    pub msgtype: MessageType ,
+    pub msgtype: MessageType,
 
     // Make params with aliases for each message type
     #[serde(skip_serializing_if = "Option::is_none")]

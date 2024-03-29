@@ -111,6 +111,8 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let username = USER_ID.lock().unwrap().clone().to_string();
 
+    sender.send(Message.Text(format!("\"param1\": {}", serde_json::to_string(&MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
+
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
@@ -139,16 +141,16 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // name, and sends them to all broadcast subscribers.
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
-            let mut message = serde_json::from_str::<MessageModel>(&text).expect("couldn't get json from message");
-            match message.msgtype {
-                MessageType::MessageSent => {
+            let mut message = serde_json::from_str::<MessageTypes>(&text).expect("couldn't get json from message");
+            match message {
+                MessageTypes::MessageSent(request) => {
                     let mut msg_new: String = String::new();
-                    push_html(&mut msg_new, Parser::new(&message.param1.expect("message is null!").replace("<", "&lt;").replace(">", "&gt;")));
+                    push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
                     if let Some(text) = into_censored_md(&clean(&*msg_new)) {
-                        message.param1 = Some(text);
+                        request.msg = Some(text);
                         let mut msg_vec = MESSAGES.lock().unwrap();
-                        msg_vec.push_with_hard_limit(&message);
-                        let _ = tx.send(serde_json::to_string(&message).expect("couldnt convert json to string"));
+                        msg_vec.push_with_hard_limit(&request);
+                        let _ = tx.send(serde_json::to_string(&request).expect("couldnt convert json to string"));
                     }
                     continue;
                 },
