@@ -21,10 +21,10 @@ pub struct RetrieveMessages {
 
 // User related messages
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UserLeave {
+pub struct UserJoin {
     user: String
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UserJoin {
-    msgs: String
+pub struct UserLeave {
+    user: String
 }
