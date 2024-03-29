@@ -37,8 +37,10 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
         new_text.push(replacement);
         nodes_char.drain(0..text.len());
     }
+    for txt in document.descendants().text_nodes() {
+            println!("{:?}",txt);
 
-    println!("{:?}",document.descendants().text_nodes());
+    }
     for (index, text_node) in document.descendants().text_nodes().enumerate() {
         text_node.replace(new_text[index].clone());
     }
