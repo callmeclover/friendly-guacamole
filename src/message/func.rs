@@ -29,7 +29,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text.trim()).into_inner()}).collect();
     let mut nodes_char: Vec<char>;
 
-    match user.context.process(nodes_text.join("").trim()) {
+    match user.context.process(nodes_text.join("").trim().to_string()) {
         Ok(text) => {
             nodes_char = text.chars().collect::<Vec<char>>();
         },
