@@ -31,10 +31,13 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, BlockReas
     let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("").trim().to_string())?.chars().collect();
 
     let mut new_text: Vec<String> = vec![];
+    let mut consumed_chars = 0;
+
     for text in nodes_text.iter() {
-        let replacement: String = nodes_char.chunks_exact(text.len()).next().unwrap().iter().collect();
+        let len = text.len();
+        let replacement: String = nodes_char[consumed_chars..consumed_chars + len].iter().collect();
         new_text.push(replacement);
-        nodes_char.drain(0..text.len());
+        consumed_chars += len;
     }
 
     for (index, text_node) in document.descendants().text_nodes().enumerate() {
