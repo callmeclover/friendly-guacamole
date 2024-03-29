@@ -120,7 +120,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
     let _ = state.tx.send(msg);
 
-    sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&*MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!"))));
+    let _ = sender.send(Message::Text(format!("\"msgs\": {}", serde_json::to_string(&*MESSAGES.lock().unwrap()).expect("couldn't serialize MESSAGES vector!")))).await;
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
