@@ -6,7 +6,7 @@ pub enum MessageTypes {
   MessageSent(MessageSent),
   RetrieveMessages(RetrieveMessages),
   UserJoin(UserJoin),
-  UserLeave(UserLeave)
+  UserLeft(UserLeft)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
