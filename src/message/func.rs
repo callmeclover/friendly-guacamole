@@ -26,7 +26,7 @@ pub fn into_censored_md(html: &str, user: User) -> Option<String> {
     }
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("")).chars().collect::<Vec<char>>();
+    let mut nodes_char: Vec<char> = user.context.process(nodes_text.join("")).expect("").chars().collect::<Vec<char>>();
 
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
