@@ -1,6 +1,7 @@
 use rustrict::{BlockReason, Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
 use kuchikiki::traits::*;
 use std::cell::RefCell;
+use crate::user::model::User;
 
 pub trait VecWithHardLimit<T: Clone> {
     fn push_with_hard_limit(&mut self, element: &T);
