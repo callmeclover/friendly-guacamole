@@ -123,7 +123,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // Now send the "joined" message to all subscribers.
     let msg = format!("{username} joined.");
     tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
-    let _ = state.tx.send(serde_json::to_string(&UserJoin {user: username.clone()}).expect(""));
+    let _ = state.tx.send(serde_json::to_string(&UserJoin {userjoin: username.clone()}).expect(""));
     
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
     let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec}).expect("couldn't serialize MESSAGES vector!"))).await;
@@ -173,7 +173,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // Send "user left" message (similar to "joined" above).
     let msg = format!("{username} left.");
     tracing::debug!("{msg}");
-    let _ = state.tx.send(serde_json::to_string(&UserLeft {user: username.clone()}).expect(""));
+    let _ = state.tx.send(serde_json::to_string(&UserLeft {userleft: username.clone()}).expect(""));
 
     // Remove username from map so new clients can take it again.
     state.user_set.lock().unwrap().remove(&username);
