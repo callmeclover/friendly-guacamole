@@ -12,7 +12,7 @@ pub enum MessageTypes {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MessageSent {
     pub msg: String,
-    user: String
+    pub user: String
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {

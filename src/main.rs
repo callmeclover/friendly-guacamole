@@ -110,6 +110,10 @@ async fn ws_handler(
 
 /// Actual websocket statemachine (one will be spawned per connection)
 async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>) {
+    let mut options = ContextProcessingOptions::default();
+    let mut repopt = ContextRepetitionLimitOptions::default();
+    repopt.limit = 10;
+    options.repetition_limit = Some(repopt);
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
     let username = USER_ID.lock().unwrap().clone().to_string();
@@ -151,12 +155,16 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
                     push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
-                    if let Some(text) = into_censored_md(&clean(&*msg_new)) {
-                            request.msg = text;
+                    
+                    match into_censored_md(&clean(&*msg_new), &mut user, &options) {
+                        Ok(output) => {
+                            request.msg = output;
                             let mut msg_vec = MESSAGES.lock().unwrap();
                             msg_vec.push_with_hard_limit(&request);
                             let _ = tx.send(serde_json::to_string(&request).expect("couldnt convert json to string"));
                             continue;
+                        },
+                        Err(reason) => println!("Message blocked from user '{}' for reason {:?}", request.user, reason)
                     }
                 },
                 _ => { continue; }

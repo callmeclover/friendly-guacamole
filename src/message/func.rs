@@ -1,4 +1,4 @@
-use rustrict::CensorIter;
+use rustrict::{BlockReason, Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
 use kuchikiki::traits::*;
 use std::cell::RefCell;
 
@@ -15,17 +15,22 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str) -> Option<String> {
+pub fn into_censored_md(html: &str, user: &mut User, options: &ContextProcessingOptions) -> Result<String, BlockReason> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
     if !document.select_first("p").is_ok() {
-        document = kuchikiki::parse_html().one(format!("<p>{}</p>", document.select_first("body").unwrap().as_node().to_string()));
+        document = kuchikiki::parse_html().one(format!("<p>{}</p>", document.select_first("body").unwrap().as_node().to_string())).select_first("p").unwrap().as_node().clone();
+    } else {
+        document = document.select_first("p").unwrap().as_node().clone();
     }
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
-    let mut nodes_char: Vec<char> = nodes_text.join("").chars().censor().collect::<Vec<char>>();
-
+    let mut nodes_char: Vec<char>;
+    match user.context.process_with_options(nodes_text.join(""), &options) {
+        Ok(processed) => { nodes_char = processed.chars().collect::<Vec<char>>(); },
+        Err(reason) => { return Err(reason) }
+    }
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
     while index < nodes_text.len() {
@@ -39,8 +44,8 @@ pub fn into_censored_md(html: &str) -> Option<String> {
         text_node.replace(new_text[index].clone());
     }
     if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        None
+        Err(BlockReason::Empty)
     } else {
-        Some(document.select_first("p").unwrap().as_node().to_string())
+        Ok(document.select_first("p").unwrap().as_node().to_string())
     }
 }
