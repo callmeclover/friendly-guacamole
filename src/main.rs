@@ -4,7 +4,7 @@ use message::model::*;
 use message::func::{into_censored_md, VecWithHardLimit};
 use user::model::*;
 
-use rustrict::{Context, BlockReason, ContextProcessingOptions, ContextRepetitionLimitOptions};
+use rustrict::{Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
 use axum::{
     extract::{State, ws::{Message, WebSocket, WebSocketUpgrade}},
     response::IntoResponse,
