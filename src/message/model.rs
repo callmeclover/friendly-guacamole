@@ -14,8 +14,7 @@ pub enum MessageTypes {
 pub struct MessageSent {
     pub msg: String,
     pub user: String,
-    #[serde(skip_serializing)]
-    pub time: DateTime<Utc>
+    pub time: Option<DateTime<Utc>>
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {
