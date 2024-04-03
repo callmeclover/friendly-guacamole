@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -15,7 +15,7 @@ pub struct MessageSent {
     pub msg: String,
     pub user: String,
     #[serde(skip_serializing)]
-    pub time: DateTime
+    pub time: DateTime<Utc>
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {
