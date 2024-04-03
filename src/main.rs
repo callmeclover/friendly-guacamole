@@ -163,7 +163,6 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                             request.time = Some(Utc::now());
                             let mut msg_vec = MESSAGES.lock().unwrap();
                             msg_vec.push_with_hard_limit(&request);
-                            println!("{:?}", request);
                             let _ = tx.send(serde_json::to_string(&request).expect("couldnt convert json to string"));
                             continue;
                         },
