@@ -5,6 +5,7 @@ use message::func::{into_censored_md, VecWithHardLimit};
 use user::model::*;
 
 use rustrict::{Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
+use chrono::Utc;
 use axum::{
     extract::{State, ws::{Message, WebSocket, WebSocketUpgrade}},
     response::IntoResponse,
@@ -159,6 +160,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                     match into_censored_md(&clean(&*msg_new), &mut user, &options) {
                         Ok(output) => {
                             request.msg = output;
+                            request.time = Utc::now();
                             let mut msg_vec = MESSAGES.lock().unwrap();
                             msg_vec.push_with_hard_limit(&request);
                             let _ = tx.send(serde_json::to_string(&request).expect("couldnt convert json to string"));

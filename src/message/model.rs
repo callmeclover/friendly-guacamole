@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use chrono::DateTime;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -12,7 +13,9 @@ pub enum MessageTypes {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MessageSent {
     pub msg: String,
-    pub user: String
+    pub user: String,
+    #[serde(skip_serializing)]
+    pub time: DateTime
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetrieveMessages {
