@@ -5,7 +5,8 @@ use message::func::{into_censored_md, VecWithHardLimit};
 use user::model::*;
 
 use rustrict::{Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
-use chrono::Utc;
+use chrono::{Utc, DateTime};
+use js_sys::Date;
 use axum::{
     extract::{State, ws::{Message, WebSocket, WebSocketUpgrade}},
     response::IntoResponse,
@@ -155,7 +156,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
             match message {
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
-                    push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "&lt;").replace(">", "&gt;")));
+                    push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;")));
                     
                     match into_censored_md(&clean(&*msg_new), &mut user, &options) {
                         Ok(output) => {
