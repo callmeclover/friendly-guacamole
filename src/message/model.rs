@@ -7,7 +7,8 @@ pub enum MessageTypes {
   MessageSent(MessageSent),
   RetrieveMessages(RetrieveMessages),
   UserJoin(UserJoin),
-  UserLeft(UserLeft)
+  UserLeft(UserLeft),
+  MessageBlocked(MessageBlocked)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,4 +30,10 @@ pub struct UserJoin {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserLeft {
     pub userleft: String
+}
+
+// Moderation related messages
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct MessageBlocked {
+    pub reason: String
 }

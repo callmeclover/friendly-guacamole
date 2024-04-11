@@ -1,47 +1,41 @@
 mod message;
 mod user;
 use message::model::*;
-use message::func::{into_censored_md, VecWithHardLimit};
+use message::func::{ into_censored_md, VecWithHardLimit };
 use user::model::*;
 
-use rustrict::{Context, ContextProcessingOptions, ContextRepetitionLimitOptions};
-use chrono::{Utc, DateTime};
-use js_sys::Date;
+use rustrict::{ Context, ContextProcessingOptions, ContextRepetitionLimitOptions };
+use chrono::Utc;
 use axum::{
-    extract::{State, ws::{Message, WebSocket, WebSocketUpgrade}},
+    extract::{ State, ws::{ Message, WebSocket, WebSocketUpgrade } },
     response::IntoResponse,
     routing::get,
     Router,
 };
-use pulldown_cmark::{Parser, html::push_html};
+use pulldown_cmark::{ Parser, html::push_html };
 use ammonia::clean;
 
-use std::{net::SocketAddr,
-    path::PathBuf,
-    collections::HashSet,
-    sync::{Arc, Mutex}
-};
+use std::{ net::SocketAddr, path::PathBuf, collections::HashSet, sync::{ Arc, Mutex } };
 use once_cell::sync::Lazy;
 use tokio::sync::broadcast;
-use tower_http::{
-    services::ServeDir,
-    trace::{DefaultMakeSpan, TraceLayer},
-};
+use tower_http::{ services::ServeDir, trace::{ DefaultMakeSpan, TraceLayer } };
 
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
 
 //allows to extract the IP of connecting user
 use axum::extract::connect_info::ConnectInfo;
 
 //allows to split the websocket stream into separate TX and RX branches
-use futures::{sink::SinkExt, stream::StreamExt};
+use futures::{ sink::SinkExt, stream::StreamExt };
 
 use serde_json;
 use postgres::Client;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref DB_CLIENT: Mutex<Client> = Mutex::new(Client::connect("postgres://user:password@localhost/database", postgres::NoTls).unwrap());
+    static ref DB_CLIENT: Mutex<Client> = Mutex::new(
+        Client::connect("postgres://user:password@localhost/database", postgres::NoTls).unwrap()
+    );
 }
 
 static MESSAGES: Lazy<Mutex<Vec<MessageSent>>> = Lazy::new(|| Mutex::new(Vec::with_capacity(20)));
@@ -57,10 +51,12 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
+    tracing_subscriber
+        ::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_websockets=debug,tower_http=debug".into()),
+            tracing_subscriber::EnvFilter
+                ::try_from_default_env()
+                .unwrap_or_else(|_| "example_websockets=debug,tower_http=debug".into())
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -80,21 +76,15 @@ async fn main() {
         .with_state(app_state)
         // logging so we can see whats going on
         .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::default().include_headers(true)),
+            TraceLayer::new_for_http().make_span_with(
+                DefaultMakeSpan::default().include_headers(true)
+            )
         );
 
     // run it with hyper
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:9067")
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:9067").await.unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(
-        listener,
-        app.into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .await
-    .unwrap();
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
 }
 
 /// The handler for the HTTP request (this gets called when the HTTP GET lands at the start
@@ -128,11 +118,19 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
 
     // Now send the "joined" message to all subscribers.
     let msg = format!("{username} joined.");
-    tracing::debug!("{msg}");     //We need to do this later! I have zero idea how to implement actual usernames...
-    let _ = state.tx.send(serde_json::to_string(&UserJoin {userjoin: username.clone()}).expect(""));
-    
+    tracing::debug!("{msg}"); //We need to do this later! I have zero idea how to implement actual usernames...
+    let _ = state.tx.send(
+        serde_json::to_string(&(UserJoin { userjoin: username.clone() })).expect("")
+    );
+
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
-    let _ = sender.send(Message::Text(serde_json::to_string(&RetrieveMessages {msgs: msg_vec}).expect("couldn't serialize MESSAGES vector!"))).await;
+    let _ = sender.send(
+        Message::Text(
+            serde_json
+                ::to_string(&(RetrieveMessages { msgs: msg_vec }))
+                .expect("couldn't serialize MESSAGES vector!")
+        )
+    ).await;
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
@@ -152,25 +150,43 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // name, and sends them to all broadcast subscribers.
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
-            let message = serde_json::from_str::<MessageTypes>(&text).expect("couldn't get json from message");
+            let message = serde_json
+                ::from_str::<MessageTypes>(&text)
+                .expect("couldn't get json from message");
             match message {
                 MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
-                    push_html(&mut msg_new, Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;")));
-                    
+                    push_html(
+                        &mut msg_new,
+                        Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;"))
+                    );
+
                     match into_censored_md(&clean(&*msg_new), &mut user, &options) {
                         Ok(output) => {
                             request.msg = output;
                             request.time = Some(Utc::now());
                             let mut msg_vec = MESSAGES.lock().unwrap();
                             msg_vec.push_with_hard_limit(&request);
-                            let _ = tx.send(serde_json::to_string(&request).expect("couldnt convert json to string"));
+                            let _ = tx.send(
+                                serde_json
+                                    ::to_string(&request)
+                                    .expect("couldnt convert json to string")
+                            );
                             continue;
-                        },
-                        Err(reason) => println!("Message blocked from user '{}' for reason {:?}", request.user, reason)
+                        }
+                        Err(reason) => {
+                            println!(
+                                "Message blocked from user '{}' for reason {:?}",
+                                request.user,
+                                reason
+                            );
+                            continue;
+                        }
                     }
-                },
-                _ => { continue; }
+                }
+                _ => {
+                    continue;
+                }
             }
         }
     });
@@ -179,12 +195,14 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     tokio::select! {
         _ = (&mut send_task) => recv_task.abort(),
         _ = (&mut recv_task) => send_task.abort(),
-    };
+    }
 
     // Send "user left" message (similar to "joined" above).
     let msg = format!("{username} left.");
     tracing::debug!("{msg}");
-    let _ = state.tx.send(serde_json::to_string(&UserLeft {userleft: username.clone()}).expect(""));
+    let _ = state.tx.send(
+        serde_json::to_string(&(UserLeft { userleft: username.clone() })).expect("")
+    );
 
     // Remove username from map so new clients can take it again.
     state.user_set.lock().unwrap().remove(&username);
