@@ -108,20 +108,17 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     options.repetition_limit = Some(repopt);
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
-    let username = USER_ID.lock().unwrap().clone().to_string();
+    let user_id = USER_ID.lock().unwrap().clone().to_string();
 
-    let mut user = User { context: Context::default() };
+    let mut user = User { context: Context::default(), name: "", id: user_id };
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("{username} joined.");
-    tracing::debug!("{msg}"); //We need to do this later! I have zero idea how to implement actual usernames...
-    let _ = state.tx.send(
-        serde_json::to_string(&(UserJoin { userjoin: username.clone() })).expect("")
-    );
+    let msg = format!("user {user.id} connected.");
+    tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
     let _ = sender.send(
@@ -183,6 +180,12 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                             continue;
                         }
                     }
+                },
+                MessageTypes::UserJoin(mut request) => {
+                    /*let _ = state.tx.send(
+                        serde_json::to_string(&(UserJoin { userjoin: username.clone() })).expect("")
+                    );*/
+                    continue;
                 }
                 _ => {
                     continue;

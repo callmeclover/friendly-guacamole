@@ -1,13 +1,16 @@
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use rustrict::BlockReason;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum MessageTypes {
   MessageSent(MessageSent),
   RetrieveMessages(RetrieveMessages),
+
   UserJoin(UserJoin),
   UserLeft(UserLeft),
+
   MessageBlocked(MessageBlocked)
 }
 
