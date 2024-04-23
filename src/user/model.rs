@@ -1,8 +1,7 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
-use std::convert::AsRef;
 
-#[derive(Clone, AsRef)]
+#[derive(Clone)]
 pub struct User {
     pub name: String,
     pub id: i32,
@@ -19,7 +18,7 @@ impl User {
     }
 }
 
-#[derive(Clone, AsRef)]
+#[derive(Clone)]
 pub struct GlassModeration {
     reports: i32,
     warnings: i32,
