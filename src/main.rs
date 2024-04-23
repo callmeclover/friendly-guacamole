@@ -104,14 +104,14 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone();
 
-    let mut user = Arc::new(User::new("".into(), user_id));
+    let mut user = Arc::new(Mutex::new(User::new("".into(), user_id)));
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("user {0} connected.", user.name);
+    let msg = format!("user {0} connected.", user.lock().unwrap().name);
     tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
@@ -178,7 +178,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 },
                 MessageTypes::UserJoin(mut request) => {
                     /*let _ = state.tx.send(
-                        serde_json::to_string(&(UserJoin { userjoin: user.name.clone() })).expect("")
+                        serde_json::to_string(&(UserJoin { userjoin: user.lock().unwrap().name.clone() })).expect("")
                     );*/
                     continue;
                 }
@@ -196,10 +196,10 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     }
 
     // Send "user left" message (similar to "joined" above).
-    let msg = format!("{0} left.", user.name);
+    let msg = format!("{0} left.", user.lock().unwrap().name);
     tracing::debug!("{msg}");
     let _ = state.tx.send(
-        serde_json::to_string(&(UserLeft { userleft: user.name.clone() })).expect("")
+        serde_json::to_string(&(UserLeft { userleft: user.lock().unwrap().name.clone() })).expect("")
     );
 
     *USER_ID.lock().unwrap() -= 1;
