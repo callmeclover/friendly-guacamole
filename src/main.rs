@@ -111,7 +111,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("user {0} connected.", user.lock().unwrap().name);
+    let msg = format!("user with id {0} connected.", user.lock().unwrap().id);
     tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
@@ -176,10 +176,11 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         }
                     }
                 },
-                MessageTypes::UserJoin(mut request) => {
-                    /*let _ = state.tx.send(
-                        serde_json::to_string(&(UserJoin { userjoin: user.lock().unwrap().name.clone() })).expect("")
-                    );*/
+                MessageTypes::UserJoin(request) => {
+                    user_recv.lock().unwrap().name = request.user;
+                    let _ = state.tx.send(
+                        serde_json::to_string(&(UserJoin { userjoin: user_recv.lock().unwrap().name.clone() })).expect("")
+                    );
                     continue;
                 }
                 _ => {

@@ -27,11 +27,11 @@ pub struct RetrieveMessages {
 // User related messages
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserJoin {
-    pub userjoin: String
+    pub user: String
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserLeft {
-    pub userleft: String
+    pub user: String
 }
 
 // Moderation related messages

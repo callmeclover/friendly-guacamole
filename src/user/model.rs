@@ -1,11 +1,26 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
+use serde::{Serialize, Deserialize};
+use uuid::Uuid
 
+/// What am I?
+/// A class meant to hold all the values the server uses to compute messages.
+/// *Do not send me. Ever.*
 #[derive(Clone)]
 pub struct User {
     pub name: String,
     pub id: i32,
-    pub glass: GlassModeration
+    pub glass: GlassModeration,
+    //pub sendable_user: SendableUser
+}
+
+/// What am I?
+/// A stripped down version of the `User` struct so that you can send something to the other clients.
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SendableUser {
+    pub name: String,
+    pub id: i32,
+    pub uuid: Uuid
 }
 
 impl User {
@@ -18,6 +33,8 @@ impl User {
     }
 }
 
+/// What am I?
+/// A struct meant to hold all the values and functions for the cauto-mod/censoring of Arcs.
 #[derive(Clone, Default)]
 pub struct GlassModeration {
     reports: i32,
