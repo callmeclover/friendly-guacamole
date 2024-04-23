@@ -16,7 +16,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn Error>> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Error> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -28,13 +28,10 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
     let mut nodes_char: Vec<char>;
-    nodes_char = Censor::from_str(nodes_text.join(""))
-        .with_censor_threshold(Type::SEVERE)
-        .with_censor_first_character_threshold(Type::OFFENSIVE & Type::SEVERE)
-        .with_ignore_false_positives(false)
-        .with_ignore_self_censoring(false)
-        .with_censor_replacement('*')
-        .censor_and_analyze().0.chars().collect();
+    match user.glass.process(nodes_text.join("")) {
+        Ok(val) => { nodes_char = val.chars().collect() },
+        Err(err) => { return Err(err.message); }
+    }
         
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
@@ -49,7 +46,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
         text_node.replace(new_text[index].clone());
     }
     if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        Err(BlockReason::Empty)
+        Err("Message is empty")
     } else {
         Ok(document.select_first("p").unwrap().as_node().to_string())
     }

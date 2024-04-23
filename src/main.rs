@@ -110,7 +110,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone().to_string();
 
-    let mut user = User { context: Context::default(), name: "", id: user_id };
+    let mut user = User::new("", user_id);
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
@@ -173,9 +173,9 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         }
                         Err(reason) => {
                             println!(
-                                "Message blocked from user '{}' for reason {:?}",
+                                "Message blocked from user '{}' for reason '{:?}'",
                                 request.user,
-                                reason
+                                reason.message
                             );
                             continue;
                         }
