@@ -1,7 +1,7 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct User {
     pub name: String,
     pub id: i32,
@@ -18,7 +18,7 @@ impl User {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct GlassModeration {
     reports: i32,
     warnings: i32,
@@ -56,7 +56,7 @@ impl GlassModeration {
             if analysis.is(Type::EVASIVE) {
                 self.warn();
             }
-            Ok(censored)
+            Ok(&censored)
         }
     }
 
