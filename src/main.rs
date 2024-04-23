@@ -152,7 +152,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;"))
                     );
 
-                    match into_censored_md(&clean(&*msg_new), &mut user) {
+                    match into_censored_md(&clean(&*msg_new), &mut user.as_ref()) {
                         Ok(output) => {
                             request.msg = output;
                             request.time = Some(Utc::now());
