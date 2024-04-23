@@ -3,7 +3,7 @@ use rustrict::{Censor, Type};
 
 #[derive(Clone)]
 pub struct User {
-    pub mut name: String,
+    pub name: String,
     pub id: i32,
     pub glass: GlassModeration
 }
@@ -56,7 +56,7 @@ impl GlassModeration {
             if analysis.is(Type::EVASIVE) {
                 self.warn();
             }
-            return censored;
+            Ok(censored)
         }
     }
 
