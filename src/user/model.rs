@@ -1,7 +1,7 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
-use uuid::Uuid
+use uuid::Uuid;
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
