@@ -19,7 +19,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
-    if !document.select_first("p").is_ok() {
+    if document.select_first("p").is_err() {
         document = kuchikiki::parse_html().one(format!("<p>{}</p>", document.select_first("body").unwrap().as_node().to_string())).select_first("p").unwrap().as_node().clone();
     } else {
         document = document.select_first("p").unwrap().as_node().clone();

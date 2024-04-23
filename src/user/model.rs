@@ -18,21 +18,11 @@ impl User {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct GlassModeration {
     reports: i32,
     warnings: i32,
     pub is_muted: bool
-}
-
-impl Default for GlassModeration {
-    fn default() -> Self {
-        Self {
-            reports: 0,
-            warnings: 0,
-            is_muted: false
-        }
-    }
 }
 
 impl GlassModeration {

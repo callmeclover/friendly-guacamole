@@ -146,14 +146,14 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 ::from_str::<MessageTypes>(&text)
                 .expect("couldn't get json from message");
             match message {
-                MessageTypes::MessageSent(mut request) => {
+                MessageTypes::MessageSent(_request) => {
                     let mut msg_new: String = String::new();
                     push_html(
                         &mut msg_new,
-                        Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;"))
+                        Parser::new(&request.msg.replace('<', "&lt;").replace('>', "&gt;"))
                     );
 
-                    match into_censored_md(&clean(&*msg_new), &mut user_recv.lock().unwrap()) {
+                    match into_censored_md(&clean(&msg_new), &mut user_recv.lock().unwrap()) {
                         Ok(output) => {
                             request.msg = output;
                             request.time = Some(Utc::now());
@@ -170,7 +170,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                             println!(
                                 "Message blocked from user '{}' for reason '{}'",
                                 request.user,
-                                reason.to_string()
+                                reason
                             );
                             continue;
                         }
