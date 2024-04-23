@@ -182,7 +182,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 },
                 MessageTypes::UserJoin(mut request) => {
                     /*let _ = state.tx.send(
-                        serde_json::to_string(&(UserJoin { userjoin: username.clone() })).expect("")
+                        serde_json::to_string(&(UserJoin { userjoin: user.name.clone() })).expect("")
                     );*/
                     continue;
                 }
@@ -200,13 +200,11 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     }
 
     // Send "user left" message (similar to "joined" above).
-    let msg = format!("{username} left.");
+    let msg = format!("{user.name} left.");
     tracing::debug!("{msg}");
     let _ = state.tx.send(
-        serde_json::to_string(&(UserLeft { userleft: username.clone() })).expect("")
+        serde_json::to_string(&(UserLeft { userleft: user.name.clone() })).expect("")
     );
 
-    // Remove username from map so new clients can take it again.
-    state.user_set.lock().unwrap().remove(&username);
     *USER_ID.lock().unwrap() -= 1;
 }

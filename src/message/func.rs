@@ -30,7 +30,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
     let mut nodes_char: Vec<char>;
     match user.glass.process(nodes_text.join("")) {
         Ok(val) => { nodes_char = val.chars().collect() },
-        Err(err) => { return Err(err.message); }
+        Err(err) => { return Err(Box::new(err.to_string())); }
     }
         
     let mut index = 0;
@@ -46,7 +46,7 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
         text_node.replace(new_text[index].clone());
     }
     if document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect::<Vec<String>>().join("").trim().is_empty() {
-        Err("Message is empty")
+        Err(Box::new("Message is empty"))
     } else {
         Ok(document.select_first("p").unwrap().as_node().to_string())
     }
