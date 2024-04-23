@@ -1,6 +1,6 @@
-use rustrict::{BlockReason, ContextProcessingOptions};
+use rustrict::{Type, Censor};
 use kuchikiki::traits::*;
-use std::cell::RefCell;
+use std::{error::Error, cell::RefCell};
 use crate::user::model::User;
 
 pub trait VecWithHardLimit<T: Clone> {
@@ -16,7 +16,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User, options: &ContextProcessingOptions) -> Result<String, BlockReason> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn Error>> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag
@@ -28,10 +28,14 @@ pub fn into_censored_md(html: &str, user: &mut User, options: &ContextProcessing
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
     let mut nodes_char: Vec<char>;
-    match user.context.process_with_options(nodes_text.join(""), &options) {
-        Ok(processed) => { nodes_char = processed.chars().collect::<Vec<char>>(); },
-        Err(reason) => { return Err(reason) }
-    }
+    nodes_char = Censor::from_str(nodes_text.join(""))
+        .with_censor_threshold(Type::SEVERE)
+        .with_censor_first_character_threshold(Type::OFFENSIVE & Type::SEVERE)
+        .with_ignore_false_positives(false)
+        .with_ignore_self_censoring(false)
+        .with_censor_replacement('*')
+        .censor_and_analyze().0.chars().collect();
+        
     let mut index = 0;
     let mut new_text: Vec<String> = vec![];
     while index < nodes_text.len() {
