@@ -27,7 +27,6 @@ use axum::extract::connect_info::ConnectInfo;
 //allows to split the websocket stream into separate TX and RX branches
 use futures::{ sink::SinkExt, stream::StreamExt };
 
-use serde_json;
 use postgres::Client;
 use lazy_static::lazy_static;
 
@@ -101,10 +100,6 @@ async fn ws_handler(
 
 /// Actual websocket statemachine (one will be spawned per connection)
 async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>) {
-    let mut options = ContextProcessingOptions::default();
-    let mut repopt = ContextRepetitionLimitOptions::default();
-    repopt.limit = 10;
-    options.repetition_limit = Some(repopt);
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone();
@@ -116,7 +111,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("user {user.id} connected.");
+    let msg = format!("user {0} connected.", user.name);
     tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
@@ -200,7 +195,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     }
 
     // Send "user left" message (similar to "joined" above).
-    let msg = format!("{user.name} left.");
+    let msg = format!("{0} left.", user.name);
     tracing::debug!("{msg}");
     let _ = state.tx.send(
         serde_json::to_string(&(UserLeft { userleft: user.name.clone() })).expect("")

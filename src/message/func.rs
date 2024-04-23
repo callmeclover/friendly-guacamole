@@ -1,4 +1,3 @@
-use rustrict::{Type, Censor};
 use kuchikiki::traits::*;
 use std::{error::Error, cell::RefCell};
 use crate::user::model::User;

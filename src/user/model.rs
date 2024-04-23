@@ -11,8 +11,8 @@ pub struct User {
 impl User {
     pub fn new(name: String, id: i32) -> Self {
         Self {
-            name: name,
-            id: id,
+            name,
+            id,
             glass: GlassModeration::default()
         }
     }
@@ -41,7 +41,7 @@ impl GlassModeration {
     /// If it finds no Type::OFFENSIVE, but Type::EVASIVE, it will instead warn the user.
     /// If the user is muted, it returns an error.
     pub fn process(&self, input: &str) -> Result<&str, Box<dyn Error>> {
-        if self.is_muted { Err("User is muted".into()) }
+        if self.is_muted { return Err("User is muted".into()); }
         let (censored, analysis) = Censor::from_str(input)
             .with_censor_threshold(Type::SEVERE)
             .with_censor_first_character_threshold(Type::OFFENSIVE & Type::SEVERE)
@@ -53,7 +53,9 @@ impl GlassModeration {
             self.warn();
             Err("Message is inappropriate".into())
         } else {
-            if analysis.is(Type::EVASIVE)
+            if analysis.is(Type::EVASIVE) {
+                self.warn();
+            }
             return censored;
         }
     }
