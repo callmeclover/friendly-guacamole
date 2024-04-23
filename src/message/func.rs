@@ -27,8 +27,8 @@ pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Box<dyn E
 
     let nodes_text: Vec<String> = document.descendants().text_nodes().map(|text| {<RefCell<String> as Clone>::clone(&text).into_inner()}).collect();
     let mut nodes_char: Vec<char>;
-    match &user.glass.process(&nodes_text.join("")) {
-        Ok(val) => { nodes_char = val.chars().collect() },
+    match user.glass.process(&nodes_text.join("")) {
+        Ok(val) => { nodes_char = val.as_str().chars().collect() },
         Err(err) => { return Err(err); }
     }
         
