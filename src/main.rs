@@ -139,7 +139,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
 
     // Spawn a task that takes messages from the websocket, prepends the user
     // name, and sends them to all broadcast subscribers.
-    let mut recv_task = tokio::spawn(async move {
+    let mut recv_task = tokio::spawn(async {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             let message = serde_json
                 ::from_str::<MessageTypes>(&text)
@@ -186,7 +186,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 }
             }
         }
-    }.clone());
+    });
 
     // If any one of the tasks run to completion, we abort the other.
     tokio::select! {
