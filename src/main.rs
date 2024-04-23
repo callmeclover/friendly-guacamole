@@ -172,9 +172,9 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         }
                         Err(reason) => {
                             println!(
-                                "Message blocked from user '{}' for reason '{:?}'",
+                                "Message blocked from user '{}' for reason '{}'",
                                 request.user,
-                                reason.message
+                                reason.to_string()
                             );
                             continue;
                         }
