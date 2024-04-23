@@ -104,7 +104,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone();
 
-    let mut user = Arc::new(Mutex::new(User::new("".into(), user_id)));
+    let user = Arc::new(Mutex::new(User::new("".into(), user_id)));
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.

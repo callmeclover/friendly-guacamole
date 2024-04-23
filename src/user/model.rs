@@ -58,7 +58,7 @@ impl GlassModeration {
             if analysis.is(Type::EVASIVE) {
                 self.warn();
             }
-            Ok(&censored)
+            Ok(censored)
         }
     }
 
