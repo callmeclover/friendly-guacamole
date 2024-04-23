@@ -9,7 +9,7 @@ pub struct User {
 }
 
 impl User {
-    fn new(name: String, id: i32) -> Self {
+    pub fn new(name: String, id: i32) -> Self {
         Self {
             name: name,
             id: id,
@@ -40,7 +40,7 @@ impl GlassModeration {
     /// This will add reports if it finds Type::OFFENSIVE, returning an error.
     /// If it finds no Type::OFFENSIVE, but Type::EVASIVE, it will instead warn the user.
     /// If the user is muted, it returns an error.
-    fn process(&self, input: &str) -> Result<&str, Error> {
+    pub fn process(&self, input: &str) -> Result<&str, dyn Error> {
         if self.is_muted { Err("User is muted") }
         let (censored, analysis) = Censor::from_str(input)
             .with_censor_threshold(Type::SEVERE)
@@ -59,7 +59,7 @@ impl GlassModeration {
     }
 
     /// Warns the user, adding a report if there are 5 warnings.
-    fn warn(&self) {
+    pub fn warn(&self) {
         self.warnings += 1;
         if self.warnings >= 5 {
             self.warnings = 0;
@@ -68,7 +68,7 @@ impl GlassModeration {
     }
 
     /// Reports the user, muting them if there are 10 warnings.
-    fn report(&self) {
+    pub fn report(&self) {
         self.reports += 1;
         if self.reports >= 10 {
             self.is_muted = true;
@@ -76,8 +76,8 @@ impl GlassModeration {
     }
 
     /// Mutes the user.
-    fn mute(&self) { self.is_muted = true; }
+    pub fn mute(&self) { self.is_muted = true; }
 
     /// Unmutes the user.
-    fn unmute(&self) { self.is_muted = false; }
+    pub fn unmute(&self) { self.is_muted = false; }
 }

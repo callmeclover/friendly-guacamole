@@ -16,7 +16,7 @@ impl<T: Clone> VecWithHardLimit<T> for Vec<T> {
     }
 }
 
-pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, Error> {
+pub fn into_censored_md(html: &str, user: &mut User) -> Result<String, dyn Error> {
     let mut document = kuchikiki::parse_html().one(html);
 
     // If there's no <p> tag, wrap the content in a <p> tag

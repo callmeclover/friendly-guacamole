@@ -107,9 +107,9 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     options.repetition_limit = Some(repopt);
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
-    let user_id = USER_ID.lock().unwrap().clone().to_string();
+    let user_id = USER_ID.lock().unwrap().clone();
 
-    let mut user = User::new("", user_id);
+    let mut user = User::new("".into(), user_id);
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
@@ -157,7 +157,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;"))
                     );
 
-                    match into_censored_md(&clean(&*msg_new), &mut user, &options) {
+                    match into_censored_md(&clean(&*msg_new), &mut user) {
                         Ok(output) => {
                             request.msg = output;
                             request.time = Some(Utc::now());
