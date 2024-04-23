@@ -104,7 +104,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone();
 
-    let mut user = User::new("".into(), user_id);
+    let mut user = Arc::new(User::new("".into(), user_id));
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
@@ -140,6 +140,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     // Spawn a task that takes messages from the websocket, prepends the user
     // name, and sends them to all broadcast subscribers.
     let mut recv_task = tokio::spawn(async move {
+        let user_recv = user.clone();
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             let message = serde_json
                 ::from_str::<MessageTypes>(&text)
@@ -152,7 +153,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                         Parser::new(&request.msg.replace("<", "<").replace(">", "&gt;"))
                     );
 
-                    match into_censored_md(&clean(&*msg_new), &mut user) {
+                    match into_censored_md(&clean(&*msg_new), &mut user_recv) {
                         Ok(output) => {
                             request.msg = output;
                             request.time = Some(Utc::now());
