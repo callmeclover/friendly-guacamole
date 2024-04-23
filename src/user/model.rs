@@ -40,9 +40,9 @@ impl GlassModeration {
     /// This will add reports if it finds Type::OFFENSIVE, returning an error.
     /// If it finds no Type::OFFENSIVE, but Type::EVASIVE, it will instead warn the user.
     /// If the user is muted, it returns an error.
-    pub fn process(&self, input: &str) -> Result<&str, Box<dyn Error>> {
+    pub fn process(&mut self, input: &str) -> Result<&str, Box<dyn Error>> {
         if self.is_muted { return Err("User is muted".into()); }
-        
+
         let (censored, analysis) = Censor::from_str(input)
             .with_censor_threshold(Type::SEVERE)
             .with_censor_first_character_threshold(Type::OFFENSIVE & Type::SEVERE)
