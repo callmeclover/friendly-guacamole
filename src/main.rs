@@ -146,7 +146,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 ::from_str::<MessageTypes>(&text)
                 .expect("couldn't get json from message");
             match message {
-                MessageTypes::MessageSent(_request) => {
+                MessageTypes::MessageSent(mut request) => {
                     let mut msg_new: String = String::new();
                     push_html(
                         &mut msg_new,
