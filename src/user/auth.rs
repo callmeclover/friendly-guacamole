@@ -1,5 +1,6 @@
 use std::error::Error;
-use sea_orm::{*, prelude::*};
+use sea_orm::{*, prelude::*, entity::*, error::*};
+
 use crate::user::model::{Entity as ModelEntity, Column as ModelColumn};
 
 pub struct DatabaseConnectix {
