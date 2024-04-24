@@ -1,7 +1,6 @@
 mod message;
 mod user;
 use message::{ model::*, func::{ into_censored_md, VecWithHardLimit } };
-use message::;
 use user::{ model::*, auth::* };
 
 use chrono::Utc;
