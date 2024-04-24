@@ -95,7 +95,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     *USER_ID.lock().unwrap() += 1;
     let user_id = USER_ID.lock().unwrap().clone();
 
-    let user = Arc::new(Mutex::new(User::new("".into(), user_id)));
+    let user = Arc::new(Mutex::new(User::new("".into())));
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
@@ -170,7 +170,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 MessageTypes::UserJoin(request) => {
                     user_recv.lock().unwrap().name = request.user;
                     let _ = state.tx.send(
-                        serde_json::to_string(&(UserJoin { userjoin: user_recv.lock().unwrap().name.clone() })).expect("")
+                        serde_json::to_string(&(UserJoin { user: user_recv.lock().unwrap().name.clone() })).expect("")
                     );
                     continue;
                 }
@@ -191,7 +191,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let msg = format!("{0} left.", user.lock().unwrap().name);
     tracing::debug!("{msg}");
     let _ = state.tx.send(
-        serde_json::to_string(&(UserLeft { userleft: user.lock().unwrap().name.clone() })).expect("")
+        serde_json::to_string(&(UserLeft { user: user.lock().unwrap().name.clone() })).expect("")
     );
 
     *USER_ID.lock().unwrap() -= 1;

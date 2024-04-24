@@ -12,7 +12,7 @@ pub struct User {
     /// Why is the user id (the number after the @) not stored here?
     /// Because we can simplify this! Use the method `get_name_split()`.
     pub name: String,
-    pub uuid: Uuid
+    pub uuid: Uuid,
     pub glass: GlassModeration,
     pub sendable_user: SendableUser,
     // pub password: String,
@@ -21,11 +21,12 @@ pub struct User {
 
 impl User {
     pub fn new(name: String) -> Self {
+        let uuid = Uuid::new_v4();
         Self {
             name,
-            uuid: Uuid::new_v4(),
+            uuid,
             glass: GlassModeration::default(),
-            sendable_user: SendableUser::new(name, self.uuid)
+            sendable_user: SendableUser::new(name, uuid)
         }
     }
 
@@ -38,9 +39,11 @@ impl User {
 
 /// What am I?
 /// A struct so that we can save user data in the database.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, Self::DeriveEntityModel)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
+    #[sea_orm(primary_key, auto_increment)]
+    pub user_number: i32,
     #[sea_orm(column_name = "id", enum_name = "Id")]
     pub id: i32,
     #[sea_orm(column_name = "name", enum_name = "Name")]
