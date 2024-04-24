@@ -42,7 +42,7 @@ impl User {
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment)]
+    #[sea_orm(primary_key, auto_increment=1)]
     pub user_number: i32,
     #[sea_orm(column_name = "id", enum_name = "Id")]
     pub id: i32,
@@ -59,6 +59,17 @@ pub struct Model {
     /// It's in JSON format.
     pub moderation_stats: String
 }
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl Related<super::fruit::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Fruit.def()
+    }
+}
+
+impl ActiveModelBehavior for ActiveModel {}
 
 /// What am I?
 /// A stripped down version of the `User` struct so that you can send something to the other clients.
