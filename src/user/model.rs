@@ -39,7 +39,7 @@ impl User {
 
 /// What am I?
 /// A struct so that we can save user data in the database.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, Self::DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment)]

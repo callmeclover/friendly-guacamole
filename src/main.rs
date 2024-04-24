@@ -25,7 +25,7 @@ static USER_ID: Lazy<Arc<Mutex<i32>>> = Lazy::new(|| Arc::new(Mutex::new(0)));
 lazy_static::lazy_static! {
     static ref DB_CLIENT: Arc<Mutex<DatabaseConnectix>> = {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            DatabaseConnectix::default();
+            return Arc::new(Mutex::new(DatabaseConnectix::default().await));
         })
     };
 }
@@ -102,7 +102,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("user with id {0} connected.", user.lock().unwrap().id);
+    let msg = format!("user with id {0} connected.", (*user.lock().unwrap()).id);
     tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
