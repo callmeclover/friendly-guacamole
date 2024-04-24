@@ -2,16 +2,59 @@ use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
+use sea_orm::prelude::*;
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
 /// *Do not send me. Ever.*
 #[derive(Clone)]
 pub struct User {
+    /// Why is the user id (the number after the @) not stored here?
+    /// Because we can simplify this! Use the method `get_name_split()`.
     pub name: String,
-    pub id: i32,
+    pub uuid: Uuid
     pub glass: GlassModeration,
-    //pub sendable_user: SendableUser
+    pub sendable_user: SendableUser,
+    // pub password: String,
+    // pub email: String
+}
+
+impl User {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            uuid: Uuid::new_v4(),
+            glass: GlassModeration::default(),
+            sendable_user: SendableUser::new(name, self.uuid)
+        }
+    }
+
+    /// I exist because the name and id are merged into the name variable.
+    /// I return them seperately!
+    pub fn name_split(&self) -> (&str, &str) {
+        self.name.as_str().rsplit_once('@').unwrap()
+    }
+}
+
+/// What am I?
+/// A struct so that we can save user data in the database.
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
+#[sea_orm(table_name = "users")]
+pub struct Model {
+    #[sea_orm(column_name = "id", enum_name = "Id")]
+    pub id: i32,
+    #[sea_orm(column_name = "name", enum_name = "Name")]
+    pub name: String,
+    #[sea_orm(column_name = "uuid", enum_name = "UUID")]
+    pub uuid: Uuid,
+    #[sea_orm(column_name = "password", enum_name = "Password")]
+    pub password: String,
+    #[sea_orm(column_name = "email", enum_name = "Email")]
+    pub email: String,
+    #[sea_orm(column_name = "mod", enum_name = "Mod")]
+    /// This is just the DB equivalent of `glass`.
+    /// It's in JSON format.
+    pub moderation_stats: String
 }
 
 /// What am I?
@@ -19,16 +62,14 @@ pub struct User {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SendableUser {
     pub name: String,
-    pub id: i32,
     pub uuid: Uuid
 }
 
-impl User {
-    pub fn new(name: String, id: i32) -> Self {
+impl SendableUser {
+    pub fn new(name: String, uuid: Uuid) -> Self {
         Self {
             name,
-            id,
-            glass: GlassModeration::default()
+            uuid
         }
     }
 }

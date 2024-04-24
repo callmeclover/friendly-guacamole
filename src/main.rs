@@ -1,43 +1,35 @@
 mod message;
 mod user;
-use message::model::*;
-use message::func::{ into_censored_md, VecWithHardLimit };
-use user::model::*;
+use message::{ model::*, func::{ into_censored_md, VecWithHardLimit } };
+use message::;
+use user::{ model::*, auth::* };
 
 use chrono::Utc;
 use axum::{
-    extract::{ State, ws::{ Message, WebSocket, WebSocketUpgrade } },
+    extract::{ connect_info::ConnectInfo, State, ws::{ Message, WebSocket, WebSocketUpgrade } },
     response::IntoResponse,
     routing::get,
     Router,
 };
 use pulldown_cmark::{ Parser, html::push_html };
 use ammonia::clean;
-
 use std::{ net::SocketAddr, path::PathBuf, collections::HashSet, sync::{ Arc, Mutex } };
 use once_cell::sync::Lazy;
 use tokio::sync::broadcast;
 use tower_http::{ services::ServeDir, trace::{ DefaultMakeSpan, TraceLayer } };
-
 use tracing_subscriber::{ layer::SubscriberExt, util::SubscriberInitExt };
-
-//allows to extract the IP of connecting user
-use axum::extract::connect_info::ConnectInfo;
-
-//allows to split the websocket stream into separate TX and RX branches
 use futures::{ sink::SinkExt, stream::StreamExt };
-
-use postgres::Client;
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref DB_CLIENT: Mutex<Client> = Mutex::new(
-        Client::connect("postgres://user:password@localhost/database", postgres::NoTls).unwrap()
-    );
-}
 
 static MESSAGES: Lazy<Mutex<Vec<MessageSent>>> = Lazy::new(|| Mutex::new(Vec::with_capacity(20)));
 static USER_ID: Lazy<Arc<Mutex<i32>>> = Lazy::new(|| Arc::new(Mutex::new(0)));
+
+lazy_static::lazy_static! {
+    static ref DB_CLIENT: Arc<Mutex<DatabaseConnectix>> = {
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            DatabaseConnectix::default();
+        })
+    };
+}
 
 // Our shared state
 struct AppState {
