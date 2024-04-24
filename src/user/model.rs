@@ -42,7 +42,7 @@ impl User {
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment=1)]
+    #[sea_orm(primary_key)]
     pub user_number: i32,
     #[sea_orm(column_name = "id", enum_name = "Id")]
     pub id: i32,
