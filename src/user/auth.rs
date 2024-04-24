@@ -1,4 +1,4 @@
-use std::{error::Error, future::Future};
+use std::error::Error;
 use sea_orm::{*, prelude::*};
 use crate::user::model::{Entity as ModelEntity, Column as ModelColumn};
 

@@ -2,7 +2,7 @@ use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
-use sea_orm::entity::prelude::*;
+use sea_orm::{entity::prelude::*, prelude::*};
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
@@ -62,12 +62,6 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
-
-impl Related<super::fruit::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Fruit.def()
-    }
-}
 
 impl ActiveModelBehavior for ActiveModel {}
 
