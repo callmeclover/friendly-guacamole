@@ -2,7 +2,7 @@ use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
-use sea_orm::prelude::*;
+use sea_orm::entity::prelude::*;
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
