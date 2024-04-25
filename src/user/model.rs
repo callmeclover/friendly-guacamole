@@ -22,7 +22,7 @@ impl User {
     pub fn new(name: String) -> Self {
         let uuid = Uuid::new_v4();
         Self {
-            name,
+            name: name.clone(),
             uuid,
             glass: GlassModeration::default(),
             sendable_user: SendableUser::new(name, uuid)
