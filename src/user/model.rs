@@ -40,15 +40,26 @@ impl User {
 /// A struct so that we can save user data in the database.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Model {
-    pub user_number: i32,
     pub id: i32,
     pub name: String,
     pub uuid: Uuid,
-    pub password: String,
-    pub email: String,
+    //pub password: String,
+    //pub email: String,
     /// This is just the DB equivalent of `glass`.
     /// It's in JSON format.
-    pub moderation_stats: String
+    pub moderation_stats: Json<GlassModeration>
+}
+
+impl From<User> for Model {
+    fn from(item: User) -> Self {
+        let (name, id) = item.name_split();
+        Self {
+            id,
+            name,
+            uuid: item.uuid,
+            moderation_stats: item.glass
+        }
+    }
 }
 
 /// What am I?
