@@ -23,7 +23,7 @@ impl DatabaseConnectix {
 
     /// Gets a possible user id (if one exists) for a username.
     pub async fn get_user_id(&self, username: &str) -> Result<i32, Error> {
-        let user: Option<Model> = query_as(
+        let mut user: Option<Model> = query_as(
             "select max(id) from users where username=$1 limit 1;"
         )
             .bind(username)
@@ -33,6 +33,7 @@ impl DatabaseConnectix {
         if user.is_none() {
             Ok(1)
         } else {
+            user=user.unwrap();
             if user.unwrap().id == 9999 { return Err(anyhow!("username is taken")); }
             Ok(user.unwrap().id+1)
         }
