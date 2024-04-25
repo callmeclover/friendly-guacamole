@@ -44,7 +44,7 @@ impl DatabaseConnectix {
                 }
             },
             Err(err) => {
-                eprintln!("{}", err);
+                Err(err)
             }
         }
     }
