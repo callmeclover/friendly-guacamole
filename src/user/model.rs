@@ -55,10 +55,10 @@ impl From<User> for Model {
     fn from(item: User) -> Self {
         let (name, id) = item.name_split();
         Self {
-            id.parse::<i32>().unwrap(),
-            name.to_string(),
+            id: id.parse::<i32>().unwrap(),
+            name: name.to_string(),
             uuid: item.uuid,
-            moderation_stats: item.glass
+            moderation_stats: Json(item.glass)
         }
     }
 }
