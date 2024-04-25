@@ -25,7 +25,7 @@ static USER_ID: Lazy<Arc<Mutex<i32>>> = Lazy::new(|| Arc::new(Mutex::new(0)));
 lazy_static::lazy_static! {
     static ref DB_CLIENT: Arc<Mutex<DatabaseConnectix>> = {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            return Arc::new(Mutex::new(DatabaseConnectix::new(&std::env::var("DB_URL").unwrap()).unwrap()));
+            Arc::new(Mutex::new(DatabaseConnectix::new(&std::env::var("DB_URL").unwrap()).unwrap()))
         })
     };
 }
