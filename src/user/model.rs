@@ -3,6 +3,7 @@ use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
 use sqlx::{FromRow, types::Json};
 use uuid::Uuid;
+use validator::Validate;
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
@@ -37,7 +38,7 @@ impl User {
 
 /// What am I?
 /// A struct so that we can save user data in the database.
-#[derive(Serialize, Deserialize, Clone, sqlx::FromRow, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, FromRow, Debug, Validate)]
 pub struct Model {
     pub id: i32,
     pub uuid: Uuid,

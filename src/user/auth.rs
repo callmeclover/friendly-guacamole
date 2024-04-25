@@ -1,7 +1,6 @@
-use std::error::Error;
 use anyhow::Result;
 use sqlx::{query_as, query, postgres::{PgPoolOptions, PgPool}, types::Json};
-use super::model::{Model, User};
+use super::model::{Model, User, GlassModeration};
 use uuid::Uuid;
 
 pub struct DatabaseConnectix {
@@ -12,9 +11,9 @@ impl Default for DatabaseConnectix {
     fn default() -> Result<Self> {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let uri = std::env::var("DB_URL")?;
-            let pool = PgPoolOptions::new()
+            let client = PgPoolOptions::new()
                 .max_connections(5)
-                .connect(uri).await?;
+                .connect(&uri).await?;
 
             return Ok(Self {
                 connection: client
@@ -38,7 +37,7 @@ impl DatabaseConnectix {
     }
 
     /// Gets a possible user id (if one exists) for a username.
-    pub fn get_user_id(&mut self, username: &str) -> Result<i32> {
+    pub async fn get_user_id(&mut self, username: &str) -> Result<i32> {
         let user: Option<User> = query_as(
             "select max(id) from users where username=$1 limit 1;"
         )
@@ -54,27 +53,27 @@ impl DatabaseConnectix {
         }
     }
 
-    pub fn post_user(&mut self, username: &str, password: &str) -> Result<()> {
+    pub async fn post_user(&mut self, username: String, password: String) -> Result<()> {
         let data: Model = Model {
             id: self.get_user_id(username)?,
             uuid: Uuid::new_v4(),
             username,
             password,
-            glass: Json(GlassModeration::default())
+            moderation_stats: Json(GlassModeration::default())
         };
         data.validate()?;
         
         let _ = sqlx::query("insert into users (id, uuid, username, password, mod) values ($1, $2, $3, $4, $5)")
-            .bind(data.id).bind(data.uuid).bind(data.username).bind(data.password).bind(data.glass)
+            .bind(data.id).bind(data.uuid).bind(data.username).bind(data.password).bind(data.moderation_stats)
             .exectute(&mut self.connection)
             .await?;
         Ok(())
     }
 
-    pub fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
+    pub async fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
         let id = self.get_user_id(username)?;
         
-        let _ = sqlx::query("update users set username=$1, id=$2 where username=$3 and id=$4")
+        let _ = query("update users set username=$1, id=$2 where username=$3 and id=$4")
             .bind(username).bind(id).bind(prev_username).bind(prev_id)
             .exectute(&mut self.connection)
             .await?;
