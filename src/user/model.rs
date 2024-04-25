@@ -82,7 +82,7 @@ impl SendableUser {
 
 /// What am I?
 /// A struct meant to hold all the values and functions for the cauto-mod/censoring of Arcs.
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct GlassModeration {
     reports: i32,
     warnings: i32,
