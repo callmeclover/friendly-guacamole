@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::Error;
 use sqlx::{query_as, query, postgres::{PgPoolOptions, PgPool}, types::Json};
 use super::model::{Model, User, GlassModeration};
 use uuid::Uuid;
@@ -8,7 +8,7 @@ pub struct DatabaseConnectix {
 }
 
 impl Default for DatabaseConnectix {
-    fn default() -> Result<Self> {
+    fn default() -> Result<Self, Error> {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let uri = std::env::var("DB_URL")?;
             let client = PgPoolOptions::new()
@@ -24,7 +24,7 @@ impl Default for DatabaseConnectix {
 }
 
 impl DatabaseConnectix {
-    pub fn new(uri: &str) -> Result<Self> {
+    pub fn new(uri: &str) -> Result<Self, Error> {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let pool = PgPoolOptions::new()
                 .max_connections(5)
@@ -37,7 +37,7 @@ impl DatabaseConnectix {
     }
 
     /// Gets a possible user id (if one exists) for a username.
-    pub async fn get_user_id(&mut self, username: &str) -> Result<i32> {
+    pub async fn get_user_id(&mut self, username: &str) -> Result<i32, Error> {
         let user: Option<User> = query_as(
             "select max(id) from users where username=$1 limit 1;"
         )
@@ -53,7 +53,7 @@ impl DatabaseConnectix {
         }
     }
 
-    pub async fn post_user(&mut self, username: String, password: String) -> Result<()> {
+    pub async fn post_user(&mut self, username: String, password: String) -> Result<(), Error> {
         let data: Model = Model {
             id: self.get_user_id(username).await?,
             uuid: Uuid::new_v4(),
@@ -70,7 +70,7 @@ impl DatabaseConnectix {
         Ok(())
     }
 
-    pub async fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
+    pub async fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<(), Error> {
         let id = self.get_user_id(username).await?;
         
         let _ = query("update users set username=$1, id=$2 where username=$3 and id=$4")
