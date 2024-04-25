@@ -25,7 +25,7 @@ static USER_ID: Lazy<Arc<Mutex<i32>>> = Lazy::new(|| Arc::new(Mutex::new(0)));
 lazy_static::lazy_static! {
     static ref DB_CLIENT: Arc<Mutex<DatabaseConnectix>> = {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            return Arc::new(Mutex::new(DatabaseConnectix::default().await));
+            return Arc::new(Mutex::new(DatabaseConnectix::default()));
         })
     };
 }
@@ -93,7 +93,6 @@ async fn ws_handler(
 async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>) {
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
-    let user_id = USER_ID.lock().unwrap().clone();
 
     let user = Arc::new(Mutex::new(User::new("".into())));
 
@@ -102,7 +101,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("user with id {0} connected.", (*user.lock().unwrap()).id);
+    let msg = format!("user with uuid {0} connected.", user.lock().unwrap().uuid);
     tracing::debug!("{msg}");
 
     let msg_vec = (*MESSAGES.lock().unwrap().clone()).to_vec();
@@ -169,7 +168,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 },
                 MessageTypes::UserJoin(request) => {
                     user_recv.lock().unwrap().name = request.user;
-                    let _ = state.tx.send(
+                    let _ = tx.send(
                         serde_json::to_string(&(UserJoin { user: user_recv.lock().unwrap().name.clone() })).expect("")
                     );
                     continue;

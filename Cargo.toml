@@ -25,5 +25,5 @@ ammonia = "4.0.0"
 kuchikiki = "0.8.2"
 js-sys = "0.3.69"
 uuid = { version = "1.8.0", features = ["v4", "fast-rng", "serde"] }
-sea-orm = { version = "0.12", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "with-uuid", "with-json"] }
+postgres = { version = "0.19.7", features = ["with-uuid-1", "with-serde_json-1"] }
 

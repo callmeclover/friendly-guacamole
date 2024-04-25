@@ -2,7 +2,6 @@ use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
-use sea_orm::entity::prelude::*;
 
 /// What am I?
 /// A class meant to hold all the values the server uses to compute messages.
@@ -39,31 +38,18 @@ impl User {
 
 /// What am I?
 /// A struct so that we can save user data in the database.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, DeriveEntityModel)]
-#[sea_orm(table_name = "users")]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Model {
-    #[sea_orm(primary_key)]
     pub user_number: i32,
-    #[sea_orm(column_name = "id", enum_name = "Id")]
     pub id: i32,
-    #[sea_orm(column_name = "name", enum_name = "Name")]
     pub name: String,
-    #[sea_orm(column_name = "uuid", enum_name = "UUID")]
     pub uuid: Uuid,
-    #[sea_orm(column_name = "password", enum_name = "Password")]
     pub password: String,
-    #[sea_orm(column_name = "email", enum_name = "Email")]
     pub email: String,
-    #[sea_orm(column_name = "mod", enum_name = "Mod")]
     /// This is just the DB equivalent of `glass`.
     /// It's in JSON format.
     pub moderation_stats: String
 }
-
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
-
-impl ActiveModelBehavior for ActiveModel {}
 
 /// What am I?
 /// A stripped down version of the `User` struct so that you can send something to the other clients.
@@ -93,8 +79,8 @@ pub struct GlassModeration {
 
 impl GlassModeration {
     /// Runs the given text through a censoring filter.
-    /// This will add reports if it finds Type::OFFENSIVE, returning an error.
-    /// If it finds no Type::OFFENSIVE, but Type::EVASIVE, it will instead warn the user.
+    /// This will add reports if it finds `Type::OFFENSIVE`, returning an error.
+    /// If it finds no `Type::OFFENSIVE`, but `Type::EVASIVE`, it will instead warn the user.
     /// If the user is muted, it returns an error.
     pub fn process(&mut self, input: &str) -> Result<String, Box<dyn Error>> {
         if self.is_muted { return Err("User is muted".into()); }
