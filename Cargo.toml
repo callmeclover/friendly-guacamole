@@ -26,5 +26,5 @@ kuchikiki = "0.8.2"
 js-sys = "0.3.69"
 uuid = { version = "1.8.0", features = ["v4", "fast-rng", "serde"] }
 anyhow = "1.0.82"
-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "uuid", "derive", "json" ] }
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "uuid", "json" ] }
 validator = { version = "0.16", features = ["derive"] }
