@@ -56,7 +56,7 @@ impl DatabaseConnectix {
 
     pub fn post_user(&mut self, username: &str, password: &str) -> Result<()> {
         let data: Model = Model {
-            id: get_user_id(username)?,
+            id: self.get_user_id(username)?,
             uuid: Uuid::new_v4(),
             username,
             password,
@@ -68,14 +68,16 @@ impl DatabaseConnectix {
             .bind(data.id).bind(data.uuid).bind(data.username).bind(data.password).bind(data.glass)
             .exectute(&mut self.connection)
             .await?;
+        Ok(())
     }
 
     pub fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
-        let id = get_user_id(username)?;
+        let id = self.get_user_id(username)?;
         
         let _ = sqlx::query("update users set username=$1, id=$2 where username=$3 and id=$4")
             .bind(username).bind(id).bind(prev_username).bind(prev_id)
             .exectute(&mut self.connection)
             .await?;
+        Ok(())
     }
 }
