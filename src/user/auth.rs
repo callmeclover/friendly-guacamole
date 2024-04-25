@@ -34,11 +34,18 @@ impl DatabaseConnectix {
 
     /// Gets a possible user id (if one exists) for a username.
     pub fn get_user_id(&self, name: &str) -> Result<i32, Box<dyn Error>> {
-        if let Some(res) = Some(self.connection.query_one("select max(id) from users where name=$1", &[&name])?) {
-            if res.id == 9999 { return Err("username is taken".into()); }
-            Ok(res.id+1)
-        } else {
-            Ok(1)
+        match self.connection.query_one("select max(id) from users where name=$1", &[&name]) {
+            Ok(res) => {
+                if let Some(id) = res.get(0) {
+                    if id == 9999 { return Err("username is taken".into()); }
+                    Ok(id+1)
+                } else {
+                    Ok(1)
+                }
+            },
+            Err(err) => {
+                eprintln!("{}", err);
+            }
         }
     }
 
