@@ -1,6 +1,7 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
+use postgres::types::Json;
 use uuid::Uuid;
 
 /// What am I?
@@ -54,8 +55,8 @@ impl From<User> for Model {
     fn from(item: User) -> Self {
         let (name, id) = item.name_split();
         Self {
-            id,
-            name,
+            id.parse::<i32>().unwrap(),
+            name.to_string(),
             uuid: item.uuid,
             moderation_stats: item.glass
         }
