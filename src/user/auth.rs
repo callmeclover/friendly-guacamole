@@ -15,9 +15,9 @@ impl Default for DatabaseConnectix {
                 .max_connections(5)
                 .connect(&uri).await?;
 
-            return Ok(Self {
+            Ok(Self {
                 connection: client
-            });
+            })
         })
         
     }
@@ -30,9 +30,9 @@ impl DatabaseConnectix {
                 .max_connections(5)
                 .connect(uri).await?;
 
-            return Ok(Self {
+            Ok(Self {
                 connection: pool
-            });
+            })
         })            
     }
 
@@ -55,7 +55,7 @@ impl DatabaseConnectix {
 
     pub async fn post_user(&mut self, username: String, password: String) -> Result<()> {
         let data: Model = Model {
-            id: self.get_user_id(username)?,
+            id: self.get_user_id(username).await?,
             uuid: Uuid::new_v4(),
             username,
             password,
@@ -71,7 +71,7 @@ impl DatabaseConnectix {
     }
 
     pub async fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
-        let id = self.get_user_id(username)?;
+        let id = self.get_user_id(username).await?;
         
         let _ = query("update users set username=$1, id=$2 where username=$3 and id=$4")
             .bind(username).bind(id).bind(prev_username).bind(prev_id)
