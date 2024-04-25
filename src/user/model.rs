@@ -1,7 +1,7 @@
 use std::error::Error;
 use rustrict::{Censor, Type};
 use serde::{Serialize, Deserialize};
-use postgres::types::Json;
+use sqlx::{FromRow, types::Json};
 use uuid::Uuid;
 
 /// What am I?
@@ -10,13 +10,11 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct User {
     /// Why is the user id (the number after the @) not stored here?
-    /// Because we can simplify this! Use the method `get_name_split()`.
+    /// Because we can simplify this! Use the method `get_name_split()` instead.
     pub name: String,
     pub uuid: Uuid,
     pub glass: GlassModeration,
-    pub sendable_user: SendableUser,
-    // pub password: String,
-    // pub email: String
+    pub sendable_user: SendableUser
 }
 
 impl User {
@@ -39,28 +37,19 @@ impl User {
 
 /// What am I?
 /// A struct so that we can save user data in the database.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, sqlx::FromRow, Debug, PartialEq, Eq)]
 pub struct Model {
     pub id: i32,
-    pub name: String,
     pub uuid: Uuid,
-    //pub password: String,
+    #[validate(length(min = 3, max = 20))]
+    pub username: String,
+    #[validate(length(min = 8, max = 32))]
+    pub password: String,
     //pub email: String,
     /// This is just the DB equivalent of `glass`.
     /// It's in JSON format.
+    #[sqlx(rename="mod")]
     pub moderation_stats: Json<GlassModeration>
-}
-
-impl From<User> for Model {
-    fn from(item: User) -> Self {
-        let (name, id) = item.name_split();
-        Self {
-            id: id.parse::<i32>().unwrap(),
-            name: name.to_string(),
-            uuid: item.uuid,
-            moderation_stats: Json(item.glass)
-        }
-    }
 }
 
 /// What am I?

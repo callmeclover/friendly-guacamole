@@ -1,60 +1,81 @@
 use std::error::Error;
-use postgres::{Client, NoTls};
-
+use anyhow::Result;
+use sqlx::{query_as, query, postgres::{PgPoolOptions, PgPool}, types::Json};
 use super::model::{Model, User};
+use uuid::Uuid;
 
 pub struct DatabaseConnectix {
-    connection: Client
+    connection: PgPool
 }
 
 impl Default for DatabaseConnectix {
-    fn default() -> Self {
+    fn default() -> Result<Self> {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            let uri = std::env::var("DB_URL").unwrap();
-            let mut client = Client::connect(&uri, NoTls).expect("can't connect to database!");
+            let uri = std::env::var("DB_URL")?;
+            let pool = PgPoolOptions::new()
+                .max_connections(5)
+                .connect(uri).await?;
 
-            return Self {
+            return Ok(Self {
                 connection: client
-            };
+            });
         })
         
     }
 }
 
 impl DatabaseConnectix {
-    pub fn new(uri: &str) -> Self {
+    pub fn new(uri: &str) -> Result<Self> {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
-            let mut client = Client::connect(uri, NoTls).expect("can't connect to database!");
+            let pool = PgPoolOptions::new()
+                .max_connections(5)
+                .connect(uri).await?;
 
-            return Self {
-                connection: client
-            };
+            return Ok(Self {
+                connection: pool
+            });
         })            
     }
 
     /// Gets a possible user id (if one exists) for a username.
-    pub fn get_user_id(&self, name: &str) -> Result<i32, Box<dyn Error>> {
-        match self.connection.query_one("select max(id) from users where name=$1", &[&name]) {
-            Ok(res) => {
-                if let Some(id) = res.get(0) {
-                    if id == 9999 { return Err("username is taken".into()); }
-                    Ok(id+1)
-                } else {
-                    Ok(1)
-                }
-            },
-            Err(err) => {
-                Err(err)
-            }
+    pub fn get_user_id(&mut self, username: &str) -> Result<i32> {
+        let user: Option<User> = query_as(
+            "select max(id) from users where username=$1 limit 1;"
+        )
+            .bind(username)
+            .fetch_optional(&mut self.connection)
+            .await?;
+
+        if user.is_none() {
+            Ok(1)
+        } else {
+            if user.id == 9999 { return Err("username is taken"); }
+            Ok(user.id+1)
         }
     }
 
-    pub fn post_user(&self, user: User) {
-        let data: Model = user.into();
-        let Model { id, name, uuid, moderation_stats } = data;
-        self.connection.execute(
-            "INSERT INTO users (id, name, uuid, mod) VALUES ($1, $2, $3, $4)",
-            &[&id, &name, &uuid, &moderation_stats],
-        ).expect("couldn't execute post_user query!");
+    pub fn post_user(&mut self, username: &str, password: &str) -> Result<()> {
+        let data: Model = Model {
+            id: get_user_id(username)?,
+            uuid: Uuid::new_v4(),
+            username,
+            password,
+            glass: Json(GlassModeration::default())
+        };
+        data.validate()?;
+        
+        let _ = sqlx::query("insert into users (id, uuid, username, password, mod) values ($1, $2, $3, $4, $5)")
+            .bind(data.id).bind(data.uuid).bind(data.username).bind(data.password).bind(data.glass)
+            .exectute(&mut self.connection)
+            .await?;
+    }
+
+    pub fn update_user(&mut self, username: &str, prev_username: &str, prev_id: i32) -> Result<()> {
+        let id = get_user_id(username)?;
+        
+        let _ = sqlx::query("update users set username=$1, id=$2 where username=$3 and id=$4")
+            .bind(username).bind(id).bind(prev_username).bind(prev_id)
+            .exectute(&mut self.connection)
+            .await?;
     }
 }
