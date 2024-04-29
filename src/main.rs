@@ -166,7 +166,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 },
                 MessageTypes::UserJoin(request) => {
                     user_recv.lock().unwrap().name = request.user;
-                    user_set_recv.lock().unwrap().push(user_recv.lock().unwrap().name.clone());
+                    user_set_recv.lock().unwrap().insert(user_recv.lock().unwrap().name.clone());
                     let _ = tx.send(
                         serde_json::to_string(&(UserJoin { user: user_recv.lock().unwrap().name.clone() })).expect("")
                     );
