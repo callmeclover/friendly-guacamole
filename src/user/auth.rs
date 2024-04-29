@@ -18,7 +18,7 @@ impl DatabaseConnectix {
             Ok(Self {
                 connection: pool
             })
-        })            
+        })
     }
 
     /// Gets a possible user id (if one exists) for a username.

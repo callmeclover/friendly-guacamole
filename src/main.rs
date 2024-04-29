@@ -33,7 +33,7 @@ lazy_static::lazy_static! {
 // Our shared state
 struct AppState {
     // We require unique usernames. This tracks which usernames have been taken.
-    user_set: Mutex<HashSet<String>>,
+    user_set: Arc<Mutex<Vec<String>>>,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
@@ -53,7 +53,7 @@ async fn main() {
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets");
 
     // Set up application state for use with with_state().
-    let user_set = Mutex::new(HashSet::new());
+    let user_set = Arc::new(Mutex::new(HashSet::new()));
     let (tx, _rx) = broadcast::channel(100);
 
     let app_state = Arc::new(AppState { user_set, tx });
@@ -126,10 +126,8 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
 
     // Clone things we want to pass (move) to the receiving task.
     let tx = state.tx.clone();
-
-    // Spawn a task that takes messages from the websocket, prepends the user
-    // name, and sends them to all broadcast subscribers.
     let user_recv = user.clone();
+    let user_set_recv = state.user_set.clone();
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             let message = serde_json
@@ -168,6 +166,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 },
                 MessageTypes::UserJoin(request) => {
                     user_recv.lock().unwrap().name = request.user;
+                    user_set_recv.lock().unwrap().push(user_recv.lock().unwrap().name.clone());
                     let _ = tx.send(
                         serde_json::to_string(&(UserJoin { user: user_recv.lock().unwrap().name.clone() })).expect("")
                     );
@@ -194,4 +193,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     );
 
     *USER_ID.lock().unwrap() -= 1;
+    if (state.user_set.lock().unwrap().contains(user.lock().unwrap().name.clone())) {
+        state.user_set.lock().unwrap().swap_remove(state.user_set.lock().unwrap().iter().position(|&r| r == user.lock().unwrap().name.clone()).unwrap());
+    }
 }
