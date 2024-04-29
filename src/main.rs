@@ -33,7 +33,7 @@ lazy_static::lazy_static! {
 // Our shared state
 struct AppState {
     // We require unique usernames. This tracks which usernames have been taken.
-    user_set: Arc<Mutex<Vec<String>>>,
+    user_set: Arc<Mutex<HashSet<String>>>,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
@@ -193,7 +193,5 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
     );
 
     *USER_ID.lock().unwrap() -= 1;
-    if (state.user_set.lock().unwrap().contains(user.lock().unwrap().name.clone())) {
-        state.user_set.lock().unwrap().swap_remove(state.user_set.lock().unwrap().iter().position(|&r| r == user.lock().unwrap().name.clone()).unwrap());
-    }
+    state.user_set.lock().unwrap().remove(&user.lock().unwrap().name.clone());
 }
