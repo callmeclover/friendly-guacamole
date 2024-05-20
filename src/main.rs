@@ -91,6 +91,7 @@ async fn ws_handler(
 
 /// Actual websocket statemachine (one will be spawned per connection)
 async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>) {
+    let user_initialized: bool = false;
     let (mut sender, mut receiver) = socket.split();
     *USER_ID.lock().unwrap() += 1;
 
@@ -135,6 +136,7 @@ async fn handle_socket(socket: WebSocket, _who: SocketAddr, state: Arc<AppState>
                 .expect("couldn't get json from message");
             match message {
                 MessageTypes::MessageSent(mut request) => {
+                    if !user_initialized { continue; }
                     let mut msg_new: String = String::new();
                     push_html(
                         &mut msg_new,
